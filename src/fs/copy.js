@@ -19,7 +19,6 @@ const copy = async () => {
           mkdir(pathToCopyFiles, { recursive: true }, (err) => {});
           // получает массив файлов вложенных в папку
           readdir(pathToFiles, { withFileTypes: true }, (err, files) => {
-            console.log(files);
             // перебор массива по обьектам
             files.forEach((file) => {
               const pathToFile = join(pathToFiles, file.name); // путь к файлу
