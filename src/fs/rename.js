@@ -1,6 +1,7 @@
 import fs, { access, constants } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+
 const rename = async () => {
   const __filename = fileURLToPath(import.meta.url); // путь к текущему файлу
   const __dirname = dirname(__filename); // путь к текущей папке
