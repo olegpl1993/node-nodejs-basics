@@ -5,30 +5,26 @@ const nthFibonacci = (n) =>
   n < 2 ? n : nthFibonacci(n - 1) + nthFibonacci(n - 2);
 
 const sendResult = () => {
-  console.log("sendResult");
+  // поток трансформатор
   const transformStream = new Transform({
     transform(chunk, encoding, callback) {
       const value = nthFibonacci(Number(chunk.toString()));
       callback(null, value.toString());
-      console.log("transform");
     },
   });
-  // Обработчик события 'message' для чтения данных из основного потока
+
+  // данных из основного потака направляет в поток трансформатор
   parentPort.on("message", (message) => {
-    // Помещаем данные в поток преобразования
-    console.log("parentPort.on message", message);
     transformStream.write(message.toString());
   });
-  parentPort.on("close", () => {
-    console.log("parentPort.on close");
-    transformStream.end();
+
+  // данные из трансформатора направляются в основный поток
+  transformStream.on("data", (transformedData) => {
+    parentPort.postMessage(transformedData.toString());
   });
-  // Обработчик события 'finish' для отправки результатов в основной поток
-  transformStream.on("finish", () => {
-    console.log("transformStream.on finish");
-    const transformedData = transformStream.read();
-    parentPort.postMessage(transformedData);
-  });
+
+  // разкоментировать для проверки на ошибку
+  //if (Math.random() < 0.5) throw new Error("Error worker");
 };
 
 sendResult();

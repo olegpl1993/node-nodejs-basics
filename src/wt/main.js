@@ -9,21 +9,31 @@ const performCalculations = async () => {
   const pathToFile = join(__dirname, "worker.js"); // путь к целевому файлу
   const numThreads = cpus().length; // кол-во ядер процессора
 
-  const workerPromises = [];
-  for (let i = 0, j = 10; i < numThreads; i++, j++) {
-    const worker = new Worker(pathToFile); // создание рабочего потока
-    worker.postMessage(j);
-    const workerPromise = new Promise((resolve) => {
-      console.log(i, " = ", j);
-      worker.on("message", () => {
-        console.log("worker.on");
-        resolve;
+  const finalOutput = [];
+  const runWorker = async (j) => {
+    return new Promise((resolve) => {
+      const worker = new Worker(pathToFile); // создание рабочего потока
+      worker.postMessage(j); // передача данных в воркер
+
+      // получение данных из воркера
+      worker.on("message", (data) => {
+        finalOutput.push({ status: "resolved", data: data });
+        resolve();
+      });
+
+      // получение ошибки из воркера
+      worker.on("error", () => {
+        finalOutput.push({ status: 'error', data: null });
+        resolve();
       });
     });
-    workerPromises.push(workerPromise);
+  };
+
+  for (let i = 0; i < numThreads; i++) {
+    await runWorker(i + 10);
   }
-  const results = await Promise.all(workerPromises);
-  console.log("results", results);
+
+  console.log(finalOutput);
 };
 
 await performCalculations();
